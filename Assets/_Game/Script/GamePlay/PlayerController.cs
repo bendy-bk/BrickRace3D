@@ -1,19 +1,29 @@
-﻿using UnityEngine;
+﻿using System.Buffers.Text;
+using System.Collections.Generic;
+using Unity.VisualScripting.Antlr3.Runtime.Collections;
+using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerController : GenericSingleton<PlayerController>
 {
     [Header("Movement")]
     public float moveSpeed = 5f;
-
     private Vector2 startTouch;
     private Vector2 swipeDirection;
     private bool isTouching = false;
+
+    [Header("Manager Brick")]
+    //[SerializeField] private Transform playerVS;
+    [SerializeField] private Transform brickListVS;
+    [SerializeField] private GameObject brickPrefab;
+    private float brickHeight = 0.2f;
+    private List<GameObject> bricksList = new List<GameObject>();
 
     void Update()
     {
         HandleTouchInput();
         MovePlayer();
     }
+
 
     // Lấy thông tin vuốt màn hình từ người chơi
     void HandleTouchInput()
@@ -62,7 +72,6 @@ public class PlayerMovement : MonoBehaviour
             swipeDirection = Vector2.zero;
         }
     }
-
     void MovePlayer()
     {
         if (!isTouching || swipeDirection == Vector2.zero) return;
@@ -88,6 +97,69 @@ public class PlayerMovement : MonoBehaviour
             Quaternion targetRot = Quaternion.LookRotation(moveDir);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 10f * Time.deltaTime);
         }
+    }
+
+    public void AddBrick(GameObject brick)
+    {
+        // Spawn một bản mới từ prefab và đặt vào brickList
+        int index = bricksList.Count;
+        float brickY = index * brickHeight;
+
+        //Spawn right position
+        GameObject newBrick = Instantiate(brickPrefab, brickListVS);
+        newBrick.transform.localPosition = new Vector3(0, brickY, 0);
+
+        // Tắt collider nếu có (để tránh va chạm không cần thiết)
+        var col = newBrick.GetComponent<Collider>();
+        if (col != null) col.enabled = false;
+
+        // Thêm vào danh sách quản lý
+        bricksList.Add(newBrick);
+
+        // Optionally: xóa brick cũ ngoài scene nếu là object thu thập
+
+        Destroy(brick); // hoặc deactivate: brick.SetActive(false);
+
+        Debug.Log("Stack Count: " + bricksList.Count);
+    }
+    public void RemoveBrick()
+    {
+
+        if (bricksList.Count == 0) return;
+
+        GameObject lastBrick = bricksList[bricksList.Count - 1];
+        bricksList.RemoveAt(bricksList.Count - 1);
+
+        Destroy(lastBrick);
+      
+    }
+
+    public void ClearStack()
+    {
+        // Xóa toàn bộ con của brickParent
+        foreach (Transform child in brickListVS)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // Dọn danh sách
+        bricksList.Clear();
+
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Brick"))
+        {
+            Debug.Log("Call add");
+            AddBrick(other.gameObject);
+        }
+        else if(other.CompareTag("GetBrick"))
+        {
+            other.GetComponent<MeshRenderer>().material = null;
+        }
+
+
     }
 
 }
