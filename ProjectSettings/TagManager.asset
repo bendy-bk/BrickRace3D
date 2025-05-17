@@ -6,6 +6,11 @@ TagManager:
   tags:
   - Brick
   - GetBrick
+  - BrickEnemy1
+  - BrickEnemy2
+  - BrickEnemy3
+  - BrickEnemy4
+  - Ground
   layers:
   - Default
   - TransparentFX

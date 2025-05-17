@@ -4,19 +4,24 @@ using System.Collections.Generic;
 
 public class EnemyPatrol : MonoBehaviour
 {
-    public NavMeshAgent agent;
+    [SerializeField] private NavMeshAgent agent;
 
     [Header("Ground Detection")]
-    public LayerMask groundLayer;
-    public float groundSize = 20f;
+    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private float groundSize = 20f;
 
     [Header("Patrol")]
-    public Transform homePoint;        // Điểm quay về
-    public int patrolCount = 5;        // Số điểm random
+    [SerializeField] private Transform homePoint;        // Điểm quay về
+    [SerializeField] private int patrolCount = 5;        // Số điểm random
 
     private List<Vector3> patrolPoints = new List<Vector3>();
     private int currentIndex = 0;
     private bool returningHome = false;
+    private BrickManager brickManager;
+    void Awake()
+    {
+        brickManager = GetComponent<BrickManager>();
+    }
 
     private void Start()
     {
@@ -86,5 +91,13 @@ public class EnemyPatrol : MonoBehaviour
 
         // Nếu không tìm được, trả về vị trí hiện tại
         return transform.position;
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("BrickEnemy1"))
+        {
+            brickManager.AddBrick(other.gameObject);
+        }
     }
 }

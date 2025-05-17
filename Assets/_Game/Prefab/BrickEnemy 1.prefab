@@ -14,8 +14,8 @@ GameObject:
   - component: {fileID: 6520003403649804954}
   - component: {fileID: 1773894721058093130}
   m_Layer: 0
-  m_Name: Brick
-  m_TagString: Brick
+  m_Name: BrickEnemy 1
+  m_TagString: BrickEnemy1
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -63,7 +63,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: e8aa9a3ba0f5ecf4a8e1ceeaaf69a12f, type: 2}
+  - {fileID: 2100000, guid: 239091cf38a9e1344954fdf44be92841, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
