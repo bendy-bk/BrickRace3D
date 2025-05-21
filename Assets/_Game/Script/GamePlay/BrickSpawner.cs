@@ -26,30 +26,6 @@ public class BrickSpawner : MonoBehaviour
 
     void SpawnGridBricks()
     {
-        for (int row = 0; row < rows; row++)
-        {
-            for (int col = 0; col < cols; col++)
-            {
-                Vector3 spawnPos = startPoint + new Vector3(col * spacing, 0, row * spacing);
-
-                // Raycast từ trên cao xuống mặt đất
-                Vector3 rayOrigin = spawnPos + Vector3.up * groundCheckHeight;
-                if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, groundCheckHeight + 1f))
-                {
-                    if (hit.collider.CompareTag("Ground"))
-                    {
-                        Vector3 finalPos = hit.point + Vector3.up * groundOffset;
-
-                        if (Random.value <= spawnChance)
-                        {
-                            GameObject brick = ObjectPoolManager.Instance.GetFromPool(prefabIndex);
-                            brick.transform.position = finalPos;
-                            brick.transform.rotation = Quaternion.identity;
-                            brick.SetActive(true);
-                        }
-                    }
-                }
-            }
-        }
+        
     }
 }
