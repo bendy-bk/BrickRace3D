@@ -2,7 +2,7 @@
 using UnityEngine.AI;
 using System.Collections.Generic;
 
-public class EnemyPatrol : MonoBehaviour
+public class EnemyPatrol : Character
 {
     [SerializeField] private NavMeshAgent agent;
 
@@ -17,11 +17,6 @@ public class EnemyPatrol : MonoBehaviour
     private List<Vector3> patrolPoints = new List<Vector3>();
     private int currentIndex = 0;
     private bool returningHome = false;
-    private BrickManager brickManager;
-    void Awake()
-    {
-        brickManager = GetComponent<BrickManager>();
-    }
 
     private void Start()
     {
@@ -97,7 +92,7 @@ public class EnemyPatrol : MonoBehaviour
     {
         if (other.CompareTag("BrickEnemy1"))
         {
-            brickManager.AddBrick(other.gameObject);
+            
         }
     }
 }

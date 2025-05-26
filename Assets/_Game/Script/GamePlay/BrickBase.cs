@@ -1,31 +1,30 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class BrickBase : GameUnit
 {
-    public void OnDesSpawn()
+    [SerializeField] protected int stageID;
+    [SerializeField] protected ColorType colorType;
+    [SerializeField] protected Renderer brickRenderer;
+    [SerializeField] protected ColorDataSO colorDataSO;
+
+    public int StageID => stageID;
+    public ColorType BrickColorType => colorType;
+
+    /// <summary>
+    /// Thiết lập màu cho viên gạch.
+    /// </summary>
+    public virtual void ChangeColor(ColorType newColorType)
     {
-        SimplePool.Despawn(this);
-        //Destroy(gameObject);
+        colorType = newColorType;
+        brickRenderer.material = colorDataSO.GetMaterial(colorType);
     }
 
-    //private void OnTriggerEnter(Collider other)
-    //{
-    //    if (other.CompareTag("Player"))
-    //    {
-    //        //TODO: set damage
-    //        OnDesSpawn();
-    //    }
-    //    else
-    //    {
-    //        if (other.CompareTag("Enemy"))
-    //        {
-    //            OnDesSpawn();
-    //        }
-
-    //    }
-
-    //}
-
+    /// <summary>
+    /// Lấy Brick (khi cần spawn hoặc lấy từ pool) với colorType nhất định.
+    /// </summary>
+    public virtual void Init(int stage, ColorType type)
+    {
+        stageID = stage;
+        ChangeColor(type);
+    }
 }

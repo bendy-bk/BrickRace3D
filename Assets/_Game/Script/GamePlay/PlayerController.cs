@@ -3,27 +3,22 @@ using System.Collections.Generic;
 using Unity.VisualScripting.Antlr3.Runtime.Collections;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour 
+public class PlayerController : Character 
 {
+    [SerializeField] private GameObject player;
+    [SerializeField] private LayerMask groundLayer;
+
     [Header("Movement")]
     public float moveSpeed = 5f;
     private Vector2 startTouch;
     private Vector2 swipeDirection;
     private bool isTouching = false;
 
-    private BrickManager brickManager;
-
-    void Awake()
-    {
-        brickManager = GetComponent<BrickManager>();
-    }
-
     void Update()
     {
         HandleTouchInput();
         MovePlayer();
     }
-
 
     // Lấy thông tin vuốt màn hình từ người chơi
     void HandleTouchInput()
@@ -72,47 +67,70 @@ public class PlayerController : MonoBehaviour
             swipeDirection = Vector2.zero;
         }
     }
+
+
     void MovePlayer()
     {
-        if (!isTouching || swipeDirection == Vector2.zero) return;
+        if (!isTouching || swipeDirection == Vector2.zero)
+        {
+            return;
+        }
 
-        // Lấy hướng camera (đã loại bỏ trục Y để giữ nhân vật không bay)
+        // Hướng từ camera
         Vector3 camForward = Camera.main.transform.forward;
         Vector3 camRight = Camera.main.transform.right;
-        camForward.y = 0;
-        camRight.y = 0;
-        camForward.Normalize();
-        camRight.Normalize();
+        camForward.y = 0f;
+        camRight.y = 0f;
+        Vector3 moveDir = (camRight * swipeDirection.x + camForward * swipeDirection.y).normalized;
+        Vector3 finalMove = moveDir;
 
-        // Chuyển swipeDirection (Vector2) sang hướng 3D dựa theo camera
-        Vector3 moveDir = camRight * swipeDirection.x + camForward * swipeDirection.y;
-        moveDir.Normalize();
+        //Raycast
+        Vector3 rayOrigin = transform.position + Vector3.up * 1f;
+        //Debug.Log(rayOrigin);
+        RaycastHit hit;
+        bool hasHit = Physics.Raycast(rayOrigin, Vector3.down, out hit, 100f, groundLayer);
+        Debug.DrawLine(rayOrigin, rayOrigin + Vector3.down * 100f, Color.red);
 
-        // Di chuyển nhân vật
-        transform.Translate(moveDir * moveSpeed * Time.deltaTime, Space.World);
 
-        // Xoay mặt nhân vật theo hướng di chuyển
-        if (moveDir != Vector3.zero)
+        if (hasHit)
         {
-            Quaternion targetRot = Quaternion.LookRotation(moveDir);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 10f * Time.deltaTime);
+            Vector3 groundNormal = hit.normal;
+            finalMove = Vector3.ProjectOnPlane(moveDir, groundNormal).normalized;
+            // Di chuyển bằng MoveTowards
+            float moveSpeed = 5f; // hoặc public float moveSpeed;
+            Vector3 targetPosition = transform.position + finalMove * moveSpeed * Time.deltaTime;
+            transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
         }
+
+        player.transform.rotation = Quaternion.identity;
     }
 
-   
     private void OnTriggerEnter(Collider other)
-    {
+    {        
         if (other.CompareTag("Brick"))
-        {
-            Debug.Log("Call add");
-            brickManager.AddBrick(other.gameObject);
+        {         
+            BrickSpawn brick = other.GetComponent<BrickSpawn>();
+            if (brick != null)
+            {
+                AddBrick(brick);
+            }
         }
-        else if(other.CompareTag("GetBrick"))
+        else if (other.CompareTag("GetBrick"))
         {
-            other.GetComponent<MeshRenderer>().material = null;
-        }
+            BrickStair brickStair = other.GetComponent<BrickStair>();
+            MeshRenderer mes = other.GetComponent<MeshRenderer>();
 
+            mes.material = ColorDataSO.GetMaterial(ColorType);
+
+            if (brickStair != null)
+            {
+                
+            }
+
+            RemoveBrick();
+
+        }
 
     }
-
 }
+
