@@ -90,9 +90,29 @@ public class EnemyPatrol : Character
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("BrickEnemy1"))
+        if (other.CompareTag("Brick"))
         {
-            
+            BrickSpawn brick = other.GetComponent<BrickSpawn>();
+
+            if (brick != null && brick.BrickColorType == ColorType)
+            {
+                AddBrick(brick);
+            }
         }
+        else if (other.CompareTag("GetBrick"))
+        {
+            BrickStair brickStair = other.GetComponent<BrickStair>();
+            MeshRenderer mes = other.GetComponent<MeshRenderer>();
+
+            mes.material = ColorDataSO.GetMaterial(ColorType);
+
+            if (brickStair != null)
+            {
+
+            }
+
+            RemoveBrick();
+
+        }   
     }
 }

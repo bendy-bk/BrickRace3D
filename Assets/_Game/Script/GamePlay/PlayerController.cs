@@ -17,6 +17,7 @@ public class PlayerController : Character
     void Update()
     {
         HandleTouchInput();
+        RaycastDown45Degrees(player.transform.position);
         MovePlayer();
     }
 
@@ -106,11 +107,13 @@ public class PlayerController : Character
     }
 
     private void OnTriggerEnter(Collider other)
-    {        
+    {
+        
         if (other.CompareTag("Brick"))
-        {         
+        {
             BrickSpawn brick = other.GetComponent<BrickSpawn>();
-            if (brick != null)
+
+            if (brick != null && brick.BrickColorType == ColorType)
             {
                 AddBrick(brick);
             }

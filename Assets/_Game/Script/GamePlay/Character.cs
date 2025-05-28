@@ -16,8 +16,8 @@ public class Character : MonoBehaviour
     [SerializeField] private GameObject brickPrefab;
     [SerializeField] private float brickHeight = 0.2f;
 
-    private List<BrickSpawn> bricks = new();
-   
+    private List<GameObject> bricks = new();
+
     public ColorType ColorType { get => colorType; set => colorType = value; }
     public ColorDataSO ColorDataSO { get => colorDataSO; set => colorDataSO = value; }
 
@@ -26,9 +26,9 @@ public class Character : MonoBehaviour
 
     }
 
-    public void OnDespawn()
+    public void OnDespawn(GameObject g)
     {
-        Destroy(gameObject);
+        Destroy(g);
     }
 
     public void ChangeColor(ColorType colorType)
@@ -56,7 +56,7 @@ public class Character : MonoBehaviour
             var col = newBrick.GetComponent<Collider>();
             if (col != null) col.enabled = false;
 
-            bricks.Add(brick);
+            bricks.Add(newBrick);
 
         }
         else
@@ -64,18 +64,19 @@ public class Character : MonoBehaviour
             Debug.Log("Diff ColorType");
         }
 
+        brick.gameObject.SetActive(false);
 
     }
 
     public void RemoveBrick()
     {
-        Debug.Log(bricks.Count);
-        if (bricks.Count == 0) return;
+     
+        if (GetStackCount() == 0) return;
 
-        BrickSpawn lastBrick = bricks[bricks.Count - 1];
+        GameObject lastBrick = bricks[bricks.Count - 1];
         bricks.RemoveAt(bricks.Count - 1);
         
-        Destroy(lastBrick.gameObject);
+        Destroy(lastBrick);
         
         
     }
@@ -91,6 +92,32 @@ public class Character : MonoBehaviour
 
     public int GetStackCount() => bricks.Count;
 
+    public void RaycastDown45Degrees(Vector3 rayOrigin)
+    {
+        // Hướng chiếu xuống dưới theo góc -45 độ (forward + down)
+        Vector3 rayDirection = - transform.forward.normalized;
+
+        // Raycast
+        RaycastHit hit;
+        bool isHit = Physics.Raycast(rayOrigin + new Vector3(0f, 0.3f, 0f), rayDirection, out hit, 2f);
+        Debug.Log(hit.collider);
+        if (isHit)
+        {
+            Debug.DrawLine(rayOrigin + new Vector3(0f, 0.3f, 0f), rayDirection, Color.red);
+            Debug.Log($"Raycast hit: {hit.collider.name}");
+
+            // Nếu muốn lấy script từ object bị hit
+            var brick = hit.collider.GetComponent<BrickStair>();
+            if (brick != null)
+            {
+                Debug.Log($"Brick Color: {brick.BrickColorType}");
+            }
+        }
+        else
+        {
+            Debug.DrawRay(rayOrigin, rayDirection * 10f, Color.yellow);
+        }
+    }
 
 
 }
