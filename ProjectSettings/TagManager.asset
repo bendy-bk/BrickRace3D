@@ -11,6 +11,8 @@ TagManager:
   - BrickEnemy3
   - BrickEnemy4
   - Ground
+  - Enemy
+  - Wall
   layers:
   - Default
   - TransparentFX
@@ -20,7 +22,7 @@ TagManager:
   - UI
   - 
   - Ground
-  - 
+  - obstacleLayer
   - 
   - 
   - 

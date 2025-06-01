@@ -3,20 +3,22 @@
 public class BrickBase : GameUnit
 {
     [SerializeField] protected int stageID;
-    [SerializeField] protected ColorType colorType;
+    [SerializeField] private ColorType colorType;
     [SerializeField] protected Renderer brickRenderer;
     [SerializeField] protected ColorDataSO colorDataSO;
 
     public int StageID => stageID;
-    public ColorType BrickColorType => colorType;
+    public ColorType BrickColorType => ColorType;
+
+    protected ColorType ColorType { get => colorType; set => colorType = value; }
 
     /// <summary>
     /// Thiết lập màu cho viên gạch.
     /// </summary>
     public virtual void ChangeColor(ColorType newColorType)
     {
-        colorType = newColorType;
-        brickRenderer.material = colorDataSO.GetMaterial(colorType);
+        ColorType = newColorType;
+        brickRenderer.material = colorDataSO.GetMaterial(ColorType);
     }
 
     /// <summary>
@@ -26,5 +28,10 @@ public class BrickBase : GameUnit
     {
         stageID = stage;
         ChangeColor(type);
+    }
+
+    public void ChagerColorType(ColorType newColorType)
+    {
+        ColorType = newColorType;
     }
 }

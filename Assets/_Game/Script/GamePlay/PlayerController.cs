@@ -3,23 +3,23 @@ using System.Collections.Generic;
 using Unity.VisualScripting.Antlr3.Runtime.Collections;
 using UnityEngine;
 
-public class PlayerController : Character 
+public class PlayerController : Character
 {
     [SerializeField] private GameObject player;
     [SerializeField] private LayerMask groundLayer;
-
     [Header("Movement")]
     public float moveSpeed = 5f;
     private Vector2 startTouch;
     private Vector2 swipeDirection;
     private bool isTouching = false;
-
     void Update()
     {
         HandleTouchInput();
-        RaycastDown45Degrees(player.transform.position);
+        //RaycastCheckBrick(player.transform.position, EnpointRaycast.position);
         MovePlayer();
     }
+
+
 
     // Lấy thông tin vuốt màn hình từ người chơi
     void HandleTouchInput()
@@ -69,14 +69,12 @@ public class PlayerController : Character
         }
     }
 
-
     void MovePlayer()
     {
         if (!isTouching || swipeDirection == Vector2.zero)
         {
             return;
         }
-
         // Hướng từ camera
         Vector3 camForward = Camera.main.transform.forward;
         Vector3 camRight = Camera.main.transform.right;
@@ -92,6 +90,17 @@ public class PlayerController : Character
         bool hasHit = Physics.Raycast(rayOrigin, Vector3.down, out hit, 100f, groundLayer);
         Debug.DrawLine(rayOrigin, rayOrigin + Vector3.down * 100f, Color.red);
 
+        ///Check wall phia truoc
+        if (ShouldBlockMovement(transform.position, moveDir))
+        {
+            Debug.Log("Movement blocked by Wall");
+            return;
+        }
+        //if (IsWallInFront(finalMove))
+        //{
+        //    Debug.Log("Blocked by Wall");
+        //    return;
+        //}
 
         if (hasHit)
         {
@@ -103,37 +112,18 @@ public class PlayerController : Character
             transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
         }
 
+        //Player luon dung thang khi len doc
         player.transform.rotation = Quaternion.identity;
     }
 
-    private void OnTriggerEnter(Collider other)
+    public override void OnInit()
     {
-        
-        if (other.CompareTag("Brick"))
-        {
-            BrickSpawn brick = other.GetComponent<BrickSpawn>();
+        base.OnInit();
+    }
 
-            if (brick != null && brick.BrickColorType == ColorType)
-            {
-                AddBrick(brick);
-            }
-        }
-        else if (other.CompareTag("GetBrick"))
-        {
-            BrickStair brickStair = other.GetComponent<BrickStair>();
-            MeshRenderer mes = other.GetComponent<MeshRenderer>();
-
-            mes.material = ColorDataSO.GetMaterial(ColorType);
-
-            if (brickStair != null)
-            {
-                
-            }
-
-            RemoveBrick();
-
-        }
-
+    public override void OnDespawn(GameObject g)
+    {
+        base.OnDespawn(g);
     }
 }
 

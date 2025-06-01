@@ -1,11 +1,11 @@
-﻿
-using System.Buffers.Text;
-using System.Collections.Generic;
-using Unity.VisualScripting.Antlr3.Runtime.Collections;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Character : MonoBehaviour
 {
+    [SerializeField] private Transform enpointRaycast;
+    [SerializeField] private bool isBlock;
+
     [Header("Mesh Renderer")]
     [SerializeField] private Renderer mrenderer;
     [SerializeField] private ColorDataSO colorDataSO;
@@ -20,13 +20,14 @@ public class Character : MonoBehaviour
 
     public ColorType ColorType { get => colorType; set => colorType = value; }
     public ColorDataSO ColorDataSO { get => colorDataSO; set => colorDataSO = value; }
+    protected Transform EnpointRaycast { get => enpointRaycast; set => enpointRaycast = value; }
 
-    public void OnInit()
+    public virtual void OnInit()
     {
 
     }
 
-    public void OnDespawn(GameObject g)
+    public virtual void OnDespawn(GameObject g)
     {
         Destroy(g);
     }
@@ -44,8 +45,8 @@ public class Character : MonoBehaviour
         int index = bricks.Count;
         float yOffset = index * brickHeight;
 
-        Debug.Log($"Brick: {brick.BrickColorType}");
-        Debug.Log($"Player: {ColorType}");
+        //Debug.Log($"Brick: {brick.BrickColorType}");
+        //Debug.Log($"Player: {ColorType}");
 
 
         if (brick.BrickColorType == ColorType)
@@ -70,15 +71,15 @@ public class Character : MonoBehaviour
 
     public void RemoveBrick()
     {
-     
-        if (GetStackCount() == 0) return;
+
+        if (GetSBricksCount() == 0) return;
 
         GameObject lastBrick = bricks[bricks.Count - 1];
         bricks.RemoveAt(bricks.Count - 1);
-        
+
         Destroy(lastBrick);
-        
-        
+
+
     }
 
     public void ClearStack()
@@ -90,34 +91,97 @@ public class Character : MonoBehaviour
         bricks.Clear();
     }
 
-    public int GetStackCount() => bricks.Count;
+    public int GetSBricksCount() => bricks.Count;
 
-    public void RaycastDown45Degrees(Vector3 rayOrigin)
+    public bool ShouldBlockMovement(Vector3 rayOrigin, Vector3 moveDir)
     {
-        // Hướng chiếu xuống dưới theo góc -45 độ (forward + down)
-        Vector3 rayDirection = - transform.forward.normalized;
-
-        // Raycast
         RaycastHit hit;
-        bool isHit = Physics.Raycast(rayOrigin + new Vector3(0f, 0.3f, 0f), rayDirection, out hit, 2f);
-        Debug.Log(hit.collider);
-        if (isHit)
-        {
-            Debug.DrawLine(rayOrigin + new Vector3(0f, 0.3f, 0f), rayDirection, Color.red);
-            Debug.Log($"Raycast hit: {hit.collider.name}");
+        Vector3 origin = rayOrigin + Vector3.up * -0.3f;
+        float distance = 1f;
 
-            // Nếu muốn lấy script từ object bị hit
-            var brick = hit.collider.GetComponent<BrickStair>();
-            if (brick != null)
+        if (Physics.Raycast(origin, moveDir, out hit, distance))
+        {
+            Debug.DrawLine(origin, moveDir, Color.yellow);
+            var brickStair = hit.collider.GetComponent<BrickStair>();
+            if (brickStair != null)
             {
-                Debug.Log($"Brick Color: {brick.BrickColorType}");
+                // List Bricks on Player
+                bool listCountBricks = GetSBricksCount() <= 0;
+                // Compare ColorPlayer & brickStair
+                bool compareColor = brickStair.BrickColorType.Equals(colorType);
+
+                // bricks <= 0
+                if (listCountBricks)
+                {
+                    // Color right || color = None
+                    if (compareColor)
+                    {
+                        brickStair.Wall.SetActive(false);
+                        return false;
+                    }
+                    else
+                    {
+                        brickStair.Wall.SetActive(true);
+                        return true;
+                    }
+
+                }
+                else 
+                {
+                    brickStair.Wall.SetActive(false);
+                    return false;
+                }
             }
         }
-        else
-        {
-            Debug.DrawRay(rayOrigin, rayDirection * 10f, Color.yellow);
-        }
+
+        return false;
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+
+        if (other.CompareTag("Brick"))
+        {
+            BrickSpawn brick = other.GetComponent<BrickSpawn>();
+
+            if (brick != null && brick.BrickColorType == ColorType)
+            {
+                AddBrick(brick);
+            }
+        }
+        else if (other.CompareTag("GetBrick"))
+        {
+            BrickStair brickStair = other.GetComponent<BrickStair>();
+            MeshRenderer mes = other.GetComponent<MeshRenderer>();
+
+            bool shouldChangeColor = GetSBricksCount() > 0;
+
+            Debug.Log(shouldChangeColor);
+            Debug.Log(brickStair.BrickColorType);
+            if (shouldChangeColor)
+            {
+                if (brickStair.BrickColorType == ColorType)
+                {
+                    return;
+                }
+                else
+                {
+                    Debug.Log("Changed");
+                    mes.material = ColorDataSO.GetMaterial(ColorType);
+                    brickStair.ChagerColorType(ColorType);
+                    RemoveBrick();
+                }
+            }
+            else
+            {
+                if (brickStair.BrickColorType == ColorType)
+                {
+                    return;
+                }
+            }
+
+        }
+
+    }
 
 }
